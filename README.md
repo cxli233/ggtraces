@@ -63,7 +63,7 @@ This workflow defines a 6 functions in this order:
 5. `map_sample_to_trace()` takes a vector of sample IDs and produce a data frame that maps sample IDs to traces (column of 1 to n). 
 6. `plot_traces()` takes the output of all the above and produce a ggplot object. 
 
-# Example Output
+# Example output
 As a example, let's visualize two sine waves. 
 
 The workflow first generates a blank coordinate system, which is a ggplot object (a "grob").

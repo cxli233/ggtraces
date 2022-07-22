@@ -1,0 +1,278 @@
+---
+title: "ggtraces"
+author: "Chenxin Li"
+date: '2022-07-22'
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Dependencies 
+```{r}
+library(tidyverse) 
+```
+
+This is a tidyverse based workflow 
+
+```{r}
+library(RColorBrewer)
+```
+For colors only, not actually needed. 
+
+# Required input
+The workflow requires the input data to be in the tidy format (each row is an observation, and each column is a variable).
+
+It requires at least 3 columns: 
+
+1. The column named `x`, which will be the x axis 
+2. the column named `y`, which will be the y axis
+3. A `sample` column that indicates the sample ID of each of the traces. 
+
+Addition required values:
+
+1. a vector of sample IDs 
+2. x_offset, default = 0.2
+3. y_offset, default = 0.4
+4. number of traces to plot 
+
+# Functions defined by the workflow
+This workflow defines a 6 functions in this order:
+
+1. `find_xy_ranges()` takes the tidy input data frame and finds xmin, xmax, ymin, and ymax. 
+2. `make_grid_table()` takes the ranges produced by `find_xy_ranges()` and produce a data frame that will be used to make the coordinate system. Additionally, it requires `x_offset` and `y_offset` and `number_of_traces`. 
+3. `make_axis_table()` takes the ranges produced by `find_xy_ranges()` and produce a data frame that will be used to make the coordinate system.
+4. `make_coord()` takes the output of `find_xy_ranges()`, `make_grid_table()`, `make_axis_table`, to make a ggplot object that is a blank coordinate system. It also requires `x_offset` and `y_offset` and `number_of_traces`.
+5. `map_sample_to_trace()` takes a vector of sample IDs and produce a data frame that maps sample IDs to traces (column of 1 to n). 
+6. `plot_traces()` takes the output of all the above and produce a ggplot object. 
+
+# Example data
+This section produce two example traces. You can ignore this part. 
+```{r}
+set.seed(666)
+
+trace1 <- data.frame(
+  "x" = seq(0, 2*pi, by = 0.01)
+) %>% 
+  mutate(y = sin(3*x))
+
+trace2 <- data.frame(
+  "x" = seq(0, 2*pi, by = 0.01)
+) %>% 
+  cbind(
+    "amp" = rnorm(n = nrow(trace1), mean = 1, sd = 0.1)
+  ) %>% 
+  mutate(y = amp*sin(3*x))
+
+example_1 <- rbind(
+  trace1 %>% 
+    mutate(sample = "sample1"),
+  trace2 %>% 
+    mutate(sample = "sample2") %>% 
+    dplyr::select(-amp)
+)
+
+head(example_1)
+```
+
+In this example, there are two samples that are just sine waves. 
+
+
+# Find x and y value ranges 
+The following function produces x and y value ranges (min and max). 
+```{r}
+find_xy_ranges <- function(data){
+  data %>% 
+    summarise(xmin = min(x),
+            xmax = max(x),
+            ymin = min(y),
+            ymax = max(y))
+}
+```
+
+```{r}
+example_1_ranges <- find_xy_ranges(example_1)
+
+example_1_ranges
+```
+
+
+# Coodinate system 
+```{r}
+x_offset <- 0.2
+y_offset <- 0.4
+number_traces <- 3 
+```
+
+Note that the example only have 2 traces. 
+But we will make space for 3 traces just as example. 
+
+## Make grid and axis tables 
+The following function produces a grid 
+
+```{r}
+make_grid_table <- function(ranges, x_offset = 0.2, y_offset = 0.4, number_traces){
+  data.frame(
+     trace = 1:number_traces
+  ) %>% 
+    mutate(x = ranges$xmin + x_offset*(trace-1)) %>%               
+    mutate(xend = ranges$xmax + x_offset*(trace-1)) %>% 
+    mutate(y = y_offset*(trace-1)) %>% 
+    mutate(yend = y) %>% 
+    dplyr::select(-trace) %>% 
+    rbind(
+      rbind(
+      c(ranges$xmin, ranges$xmin + x_offset*(number_traces - 1), 0, y_offset*(number_traces - 1)),
+      c(ranges$xmax, ranges$xmax + x_offset*(number_traces - 1), 0, y_offset*(number_traces - 1))
+    ) %>% 
+      as.data.frame() %>% 
+      dplyr::rename(
+        x = V1,
+        xend = V2,
+        y = V3,
+        yend = V4
+    )
+  )
+}
+
+
+```
+The following function produce a axis table 
+
+```{r}
+make_axis_table <- function(ranges){
+  rbind(
+    c(ranges$xmin, ceiling(ranges$xmax), -Inf, -Inf), 
+    c(-Inf, -Inf, round(ranges$ymin), ranges$ymax)
+    ) %>% 
+    as.data.frame() %>% 
+    dplyr::rename(
+      x = V1,
+      xend = V2,
+      y = V3,
+      yend = V4
+    )
+}
+```
+
+```{r}
+example1_grid_table <- make_grid_table(example_1_ranges, x_offset = x_offset, y_offset = y_offset, number_traces = number_traces)
+example1_axis_table <- make_axis_table(example_1_ranges)
+```
+
+
+The following function produce a ggplot object which is a blank coordinate 
+```{r}
+make_coord <- function(grid_table, axis_table, ranges, number_traces, x_offset = 0.2, y_offset = 0.4){
+  grid_table %>% 
+    ggplot(aes(x = x, y = y)) +
+    geom_segment(aes(x = x, xend = xend, y = y, yend = yend), 
+                 color = "grey75") +
+    geom_segment(data = axis_table, 
+                  aes(x = x, xend = xend, y = y, yend = yend), 
+                  color = "grey25", size = 1.1) +
+    theme_minimal() +
+    theme(
+      panel.grid = element_blank(),
+      text = element_text(color = "black", size = 14),
+      axis.text = element_text(color = " black"),
+      legend.position = "top",
+      axis.ticks = element_line(color = "grey20")
+  )
+}
+```
+
+```{r}
+example1_coord <- make_coord(
+  grid_table = example1_grid_table, 
+  axis_table = example1_axis_table,
+  ranges = example_1_ranges,
+  number_traces = number_traces,
+  x_offset = x_offset,
+  y_offset = y_offset
+)
+
+example1_coord
+
+ggsave("../Results/blank_coord.svg", height = 3, width = 6, bg = "white")
+ggsave("../Results/blank_coord.png", height = 3, width = 6, bg = "white")
+```
+
+The blank coordinate is a "grob" object. 
+We can add ggplot layers to, such as geom, scale, theme, and so on. 
+
+# Produce sample to trace mapping 
+Input a vector called `sample_names`. Each element is a trace. 
+First element will be the trace in the front. 
+
+```{r}
+sample_names <- c("sample1", "sample2")
+```
+
+The following function produces sample to trace mapping. 
+```{r}
+map_sample_to_trace <- function(samples){
+  data.frame(
+    "sample" = samples
+  ) %>% 
+    mutate(traces = 1:nrow(.))
+}
+```
+
+```{r}
+example1_mapping <- map_sample_to_trace(sample_names)
+example1_mapping
+```
+
+# Add traces to blank coordinate 
+
+The following function produces traces given the blank coordinate and everything else. 
+```{r}
+plot_traces <- function(data, coord, mapping, x_offset = 0.2, y_offset = 0.4, ranges, 
+                        x_title = "x value", y_title = "y value", sample_ID_title = "Sample ID"){
+  coord +
+  geom_line(data = data %>%
+              inner_join(mapping, by = "sample") %>%
+              mutate(x_adj = x + x_offset*(traces - 1)) %>%
+              mutate(y_adj = y + y_offset*(traces- 1)) %>% 
+              mutate(sample = reorder(sample, -traces)) %>% 
+              mutate(traces = reorder(traces, -traces)), 
+            aes(x = x_adj, y = y_adj,
+                group = traces, color = sample), 
+  size = 0.75) +
+  labs(x = x_title,
+       y = y_title,
+       color = sample_ID_title) +
+  scale_color_discrete(limits = mapping$sample)
+}
+```
+
+```{r}
+example_1_traces <- plot_traces(
+  data = example_1,
+  coord = example1_coord,
+  mapping = example1_mapping,
+  x_offset = x_offset,
+  y_offset = y_offset,
+  ranges = example_1_ranges
+)
+
+example_1_traces
+
+ggsave("../Results/example_1.svg", height = 3, width = 6, bg = "white")
+ggsave("../Results/example_1.png", height = 3, width = 6, bg = "white")
+```
+
+This is a grob object. 
+We can add more ggplot layers to it if needed, such as replacing the default color palette.  
+
+```{r}
+example_1_traces +
+  scale_color_manual(values = brewer.pal(8, "Accent")[c(1,5)],
+                     limits = example1_mapping$sample) +
+  theme(legend.position = "top")
+
+ggsave("../Results/example_1_nicer.svg", height = 3, width = 6, bg = "white")
+ggsave("../Results/example_1_nicer.png", height = 3, width = 6, bg = "white")
+```

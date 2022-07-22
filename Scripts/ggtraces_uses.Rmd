@@ -1,0 +1,185 @@
+---
+title: "ggtrace_uses"
+author: "Chenxin Li"
+date: '2022-07-22'
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+The easiest way to use ggtrace functions, the best way is running `ggtrace.Rmd` in the same RStudio window in a different tab.
+Once the script finishes running, the 6 functions defined by `ggtrace.Rmd` will appear in the environment. 
+
+# Packages
+```{r}
+library(tidyverse) 
+library(RColorBrewer)
+```
+
+# LC-MS data example
+Data from [Li et al., 2022](https://www.biorxiv.org/content/10.1101/2022.07.04.498697v1) 
+
+## Load data
+```{r}
+LC_MS_data <- read_csv("../Data/Example_data2.csv", col_types = cols()) # col_types = cols() suppresses col type specification message 
+head(LC_MS_data)
+```
+
+## Rename columns for ggtrace functions  
+```{r}
+LC_MS_data_2 <- LC_MS_data %>% 
+  dplyr::rename(x = `Retention time`,
+                y = `Intensity`,
+                sample = cell_type)
+
+head(LC_MS_data_2)
+```
+
+## Run ggtrace functions one by one
+```{r}
+example2_ranges <- find_xy_ranges(LC_MS_data_2)
+
+example2_ranges
+```
+
+```{r}
+example2_grid_table <- make_grid_table(example2_ranges, x_offset = 0.2, y_offset = 0.4, number_traces = 3)
+example2_axis_table <- make_axis_table(example2_ranges)
+
+example2_coord <- make_coord(
+  grid_table = example2_grid_table, 
+  axis_table = example2_axis_table,
+  ranges = example2_ranges,
+  number_traces = 3,
+  x_offset = 0.2,
+  y_offset = 0.4
+)
+
+example2_coord
+```
+```{r}
+example2_names <- c("Epidermis", "Idioblast")
+example2_mapping <- map_sample_to_trace(example2_names)
+example2_mapping
+```
+
+```{r}
+example2_traces <- plot_traces(
+  data = LC_MS_data_2,
+  coord = example2_coord,
+  mapping = example2_mapping,
+  x_offset = 0.2,
+  y_offset = 0.4,
+  ranges = example2_ranges,
+  x_title = "Retention time (min)",
+  y_title = "Relative\nintensity",
+  sample_ID_title = "Base Peak Chromatogram"
+)
+
+example2_traces
+```
+
+## Final touches 
+Manually adjust axis breaks, axis range, color palettes, and axis title position. 
+```{r}
+example2_traces +
+   geom_text(data = example2_mapping, 
+            aes(label = sample, 
+                x = example2_ranges$xmax + x_offset*(traces-1),
+                y = y_offset*(traces-1)),
+            size = 4, hjust = -0.1
+            ) +
+  scale_color_manual(values = brewer.pal(8, "Set2")[c(1,4)],
+                     limits = example2_mapping$sample) +
+  scale_y_continuous(breaks = c(0, 0.5, 1)) +
+  xlim(c(2, 7.5)) +
+  theme(legend.position = "none",
+        axis.title.y = element_text(hjust = 0.4)) 
+
+ggsave("../Results/LC_MS_example.svg", height = 3, width = 6, bg = "white")
+ggsave("../Results/LC_MS_example.png", height = 3, width = 6, bg = "white")
+```
+
+Done! 
+
+# Metagene plot example
+Data from [Li et al., 2020](https://genome.cshlp.org/content/30/2/173.short) and [Li et al., 2022](https://genome.cshlp.org/content/32/2/309.short)
+
+## Load data 
+```{r}
+metagene <- read_csv("../Data/metagene.csv", col_types = cols())
+head(metagene)
+```
+
+## Rename columns for ggtrace
+```{r}
+metagene_2 <- metagene %>% 
+  dplyr::rename(x = `bin start`,
+                sample = sample_type) %>% 
+  mutate(y = mena_pro_24 * 1000)
+
+head(metagene_2)
+```
+
+## Run ggtrace functions one by one
+```{r}
+example3_ranges <- find_xy_ranges(metagene_2)
+
+example3_ranges
+```
+
+```{r}
+example3_grid_table <- make_grid_table(example3_ranges, x_offset = 200, y_offset = 150, number_traces = 5)
+example3_axis_table <- make_axis_table(example3_ranges)
+
+example3_coord <- make_coord(
+  grid_table = example3_grid_table, 
+  axis_table = example3_axis_table,
+  ranges = example3_ranges,
+  number_traces = 5,
+  x_offset = 200,
+  y_offset = 150
+)
+
+example3_coord
+```
+```{r}
+example3_names <- c("sperm", "egg", "zygote", "seedling")
+example3_mapping <- map_sample_to_trace(example3_names)
+example3_mapping
+```
+
+```{r}
+example3_traces <- plot_traces(
+  data = metagene_2,
+  coord = example3_coord,
+  mapping = example3_mapping,
+  x_offset = 200,
+  y_offset = 150,
+  ranges = example3_ranges,
+  x_title = "Position relative to TSS",
+  y_title = "Normalized\ncoverage",
+  sample_ID_title = "Cell type"
+)
+
+example3_traces
+```
+## Final touches 
+Manually adjust axis breaks, axis range, color palettes, and axis title position. 
+```{r}
+example3_traces +
+  geom_segment(x = -Inf, xend = -Inf, y = 0, yend = 800, size = 1.1, color = "grey20") +
+  geom_segment(x = -3000, xend = 2000, y = -Inf, yend = -Inf, size = 1.1, color = "grey20") +
+  scale_color_manual(values = c("dodgerblue2", "tomato1", "violetred4", "seagreen"),
+                     limits = example3_mapping$sample) +
+  scale_y_continuous(breaks = c(0, 200, 400, 600, 800)) +
+  theme(legend.position = "top",
+        axis.title.y = element_text(hjust = 0.4))
+
+ggsave("../Results/metagene_example.svg", height = 4, width = 5.5, bg = "white")
+ggsave("../Results/metagene_example.png", height = 4, width = 5.5, bg = "white")
+```
+ 
+

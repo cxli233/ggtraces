@@ -256,7 +256,7 @@ example2_traces_3
 Low x_offset and high y_offset facilitate comparisons along x axis. 
 It gives the sensation that we are looking at the graph from the top. 
 
-## side by side comparison
+## Side by side comparison
 ```{r}
 patchwork::wrap_plots(
   example2_traces_2, example2_traces_3, nrow = 2 
@@ -266,8 +266,6 @@ ggsave("../Results/LC_MS_perspectives.svg", height = 6, width = 6, bg = "white")
 ggsave("../Results/LC_MS_perspectives.png", height = 6, width = 6, bg = "white")
 ```
 
-
-
 # Facet plot
 ```{r}
 plot_facet(LC_MS_data_2, x_title = "Retention time (min)", y_title = "Relative intensity") +
@@ -276,8 +274,9 @@ plot_facet(LC_MS_data_2, x_title = "Retention time (min)", y_title = "Relative i
 ggsave("../Results/LC_MS_facet.svg", height = 3.5, width = 5, bg = "white")
 ggsave("../Results/LC_MS_facet.png", height = 3.5, width = 5, bg = "white")
 ```
+
+
 # Pherogram
- 
 ```{r}
 plot_pherogram(data = metagene_2, 
                y_title = "Position relative to TSS", 

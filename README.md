@@ -29,10 +29,10 @@ It requires R, RStudio, and the rmarkdown package.
     - [Rename columns](https://github.com/cxli233/ggtraces#rename-columns)
     - [Run ggtraces functions](https://github.com/cxli233/ggtraces#run-ggtrace-functions-one-by-one)
     - [Final touches](https://github.com/cxli233/ggtraces#final-touches)
-8. Comparison of perspectives 
-9. Additional features
-    - Facet plot
-    - Pherogram
+8. [Comparison of perspectives](https://github.com/cxli233/ggtraces#comparison-of-perspectives) 
+9. [Additional features](https://github.com/cxli233/ggtraces#additional-features)
+    - [Facet plot](https://github.com/cxli233/ggtraces#facet-plot)
+    - [Pherogram](https://github.com/cxli233/ggtraces#pherogram)
    
 
 # Dependencies

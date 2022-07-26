@@ -14,7 +14,7 @@ It requires R, RStudio, and the rmarkdown package.
 * RStudio: [RStudio Download](https://www.rstudio.com/products/rstudio/download/)
 * rmarkdown can be installed using the intall packages interface in RStudio
 
-# TOC
+# Table of contents 
 
 1. [Dependencies](https://github.com/cxli233/ggtraces#dependencies)
 2. [Required input](https://github.com/cxli233/ggtraces#required-input)
@@ -29,6 +29,10 @@ It requires R, RStudio, and the rmarkdown package.
     - [Rename columns](https://github.com/cxli233/ggtraces#rename-columns)
     - [Run ggtraces functions](https://github.com/cxli233/ggtraces#run-ggtrace-functions-one-by-one)
     - [Final touches](https://github.com/cxli233/ggtraces#final-touches)
+8. Comparison of perspectives 
+9. Additional features
+    - Facet plot
+    - Pherogram
    
 
 # Dependencies
@@ -71,21 +75,21 @@ The workflow first generates a blank coordinate system, which is a ggplot object
 * The coordinate system is definbed by x and y value ranges, as well as number of traces to graph. 
 * The perspective of the coordinate system is defined by `x_offset` and `y_offset`.  
 
-![Example blank coord](https://github.com/cxli233/ggtraces/blob/main/Results/blank_coord.png) 
+![Example blank coord](https://github.com/cxli233/ggtraces/blob/main/Results/blank_coord.svg) 
 
 Again, the blank coordinate is a "grob" object. 
 We can add ggplot layers to, such as geom, scale, theme, and so on. 
 
 The trace plot in its most basic form, is the blank coordinate system + `geom_line()` to plot the line traces. 
 
-![Example trace plot](https://github.com/cxli233/ggtraces/blob/main/Results/example_1.png)
+![Example trace plot](https://github.com/cxli233/ggtraces/blob/main/Results/example_1.svg)
 
 This is showing two sine ways aligned along a parallelogram. 
 This is a grob object. 
 We can add more ggplot layers to it if needed, such as replacing the default color palette. 
 Usually it requires some final touches to make it look nicer. 
 
-![Example trace plot, but nicer](https://github.com/cxli233/ggtraces/blob/main/Results/example_1_nicer.png)
+![Example trace plot, but nicer](https://github.com/cxli233/ggtraces/blob/main/Results/example_1_nicer.svg)
 
 # Real datasets 
 The best way to use this tool is running `ggtraces.Rmd` in the same environment (same RStudio window) in a different tab. 
@@ -101,11 +105,11 @@ Data from [Li et al., 2020](https://genome.cshlp.org/content/30/2/173.short) and
 Running `ggtraces_uses.Rmd` in the `Scripts/` directory will generate these graphs. 
 
 ## LC-MS data 
-![LC-MS example](https://github.com/cxli233/ggtraces/blob/main/Results/LC_MS_example.png)
+![LC-MS example](https://github.com/cxli233/ggtraces/blob/main/Results/LC_MS_example.svg)
 This is showing the base peak chromatograms (normalized to higest peak) of two samples. 
 
 ## Metagene data
-![Metagene example](https://github.com/cxli233/ggtraces/blob/main/Results/metagene_example.png)
+![Metagene example](https://github.com/cxli233/ggtraces/blob/main/Results/metagene_example.svg)
 This is showing normalized coverage of 24-nt siRNAs (per 1000 24-nt siRNAs) arround transcription start sites, averaged across all genes.
 
 # Getting started
@@ -181,7 +185,42 @@ example3_traces +
   theme(legend.position = "top",
         axis.title.y = element_text(hjust = 0.4))
 ```
-![Metagene example](https://github.com/cxli233/ggtraces/blob/main/Results/metagene_example.png)
+![Metagene example](https://github.com/cxli233/ggtraces/blob/main/Results/metagene_example.svg)
 Done! 
 
+# Comparison of perspectives
+Different `x_offset` and `y_offset` values changes the apparence of the final product. 
+![LC MS different perspectives](https://github.com/cxli233/ggtraces/blob/main/Results/LC_MS_perspectives.svg) 
+
+* High x_offset and low y_offset facilitate comparisons along y axis. It gives the sensation that we are looking at the graph from the side.
+* Low x_offset and high y_offset facilitate comparisons along x axis. It gives the sensation that we are looking at the graph from the top.
+
+# Additional features
+## Facet plot
+Facet plot is a plot type where each line trace gets its own x and y axis.
+
+```{r}
+plot_facet(LC_MS_data_2, x_title = "Retention time (min)", y_title = "Relative intensity") +
+  scale_color_manual(values = brewer.pal(8, "Set2")[c(1,4)]) 
+```
+![LC MS facet plot](https://github.com/cxli233/ggtraces/blob/main/Results/LC_MS_facet.svg)
+
+The `plot_facet()` function requires the tidy data frame as input. `x_title` and `y_title` are optional. 
+Defaults are "x" and "y", respectively. 
+
+## Pherogram 
+Pherogram is short for electropherogram, where we imagine the traces are moving down a gel.
+The original y value is now represented as color intensity in the heat map. 
+
+```{r}
+plot_pherogram(data = metagene_2, 
+               y_title = "Position relative to TSS", 
+               legend_title = "Normalized\ncoverage",
+               mapping = example3_mapping)
+```
+![Metagene pherogram](https://github.com/cxli233/ggtraces/blob/main/Results/metagene_pherogram.svg)
+
+The `plot_pherogram()` function requires the tidy data frame as input. 
+`y_title` argument controls the y axis title (default = "x"), since it was the x value in the original line traces.
+`legend_title` argument controls the title of the color scale (default = "y"), since it was the y value in the origal line traces. 
 

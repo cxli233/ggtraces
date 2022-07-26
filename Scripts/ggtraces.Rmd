@@ -276,3 +276,60 @@ example_1_traces +
 ggsave("../Results/example_1_nicer.svg", height = 3, width = 6, bg = "white")
 ggsave("../Results/example_1_nicer.png", height = 3, width = 6, bg = "white")
 ```
+
+
+# plot_facet() feature
+```{r}
+plot_facet <- function(data, x_title = "x", y_title = "y"){
+  data %>% 
+    ggplot(aes(x = x, y = y)) +
+    facet_wrap(~ sample, scales = "free_x", ncol = 1) +
+    geom_line(aes(group = sample, color = sample), size = 0.75) +
+    labs(x = x_title,
+         y = y_title) +
+    theme_classic() +
+    theme(
+        text = element_text(color = "black", size = 14),
+        axis.text = element_text(color = " black"),
+        legend.position = "none",
+        strip.background = element_blank(),
+        strip.text = element_text(hjust = 0),
+        panel.spacing = unit(0.8, "lines")
+    )
+} 
+```
+
+```{r}
+plot_facet(data = example_1) +
+  scale_color_manual(values = brewer.pal(8, "Accent")[c(1, 5)])
+```
+# Pherogram
+```{r}
+plot_pherogram <- function(data, y_title = "x", legend_title = "y", mapping){
+  data %>% 
+    mutate(sample = factor(sample, levels = mapping$sample)) %>% 
+    ggplot(aes(x = sample, y = x)) +
+    geom_tile(aes(fill = y)) +
+    scale_fill_gradientn(colors = c(
+      "#FFFFFF", "#F0F0F0", "#D9D9D9", "#BDBDBD", "#969696", "#737373", "#525252", "#252525"
+   )) +
+    scale_y_continuous(trans = "reverse") +
+    labs(x = NULL,
+        fill = legend_title,
+        y = y_title) +
+    theme_classic() +
+    theme(
+        text = element_text(color = "black", size = 14),
+        axis.text = element_text(color = " black"),
+        legend.position = "right",
+        legend.key.height = unit(1.5, "lines") 
+        )
+}
+```
+
+```{r}
+plot_pherogram(data = example_1, mapping = example1_mapping)
+```
+
+
+

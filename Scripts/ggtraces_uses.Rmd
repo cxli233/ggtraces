@@ -15,6 +15,7 @@ Once the script finishes running, the 6 functions defined by `ggtrace.Rmd` will 
 # Packages
 ```{r}
 library(tidyverse) 
+library(patchwork)
 library(RColorBrewer)
 ```
 
@@ -181,5 +182,110 @@ example3_traces +
 ggsave("../Results/metagene_example.svg", height = 4, width = 5.5, bg = "white")
 ggsave("../Results/metagene_example.png", height = 4, width = 5.5, bg = "white")
 ```
+
+# How does x_offset and y_offset changes the look of the plot?
+## Higher x_offset and lower y_offset
+```{r}
+example2_grid_table_2 <- make_grid_table(example2_ranges, x_offset = 0.4, y_offset = 0.2, number_traces = 3)
+
+example2_coord_2 <- make_coord(
+  grid_table = example2_grid_table_2, 
+  axis_table = example2_axis_table,
+  ranges = example2_ranges,
+  number_traces = 3,
+  x_offset = 0.4,
+  y_offset = 0.2
+)
+
+example2_traces_2 <- plot_traces(
+  data = LC_MS_data_2,
+  coord = example2_coord_2,
+  mapping = example2_mapping,
+  x_offset = 0.4,
+  y_offset = 0.2,
+  ranges = example2_ranges,
+  x_title = "Retention time (min)",
+  y_title = "Relative\nintensity",
+  sample_ID_title = "Cell type"
+) +
+  scale_color_manual(values = brewer.pal(8, "Set2")[c(1,4)],
+                     limits = example2_mapping$sample) +
+  scale_y_continuous(breaks = c(0, 0.5, 1)) +
+  xlim(c(2, 7.5)) +
+  theme(legend.position = "top",
+        axis.title.y = element_text(hjust = 0.5)) 
+
+example2_traces_2
+```
+High x_offset and low y_offset facilitate comparisons along y axis. 
+It gives the sensation that we are looking at the graph from the side. 
+
+## Higher y_offset than x_offset
+```{r}
+example2_grid_table_3 <- make_grid_table(example2_ranges, x_offset = 0.1, y_offset = 0.5, number_traces = 3)
+
+example2_coord_3 <- make_coord(
+  grid_table = example2_grid_table_3, 
+  axis_table = example2_axis_table,
+  ranges = example2_ranges,
+  number_traces = 3,
+  x_offset = 0.1,
+  y_offset = 0.5
+)
+
+example2_traces_3 <- plot_traces(
+  data = LC_MS_data_2,
+  coord = example2_coord_3,
+  mapping = example2_mapping,
+  x_offset = 0.1,
+  y_offset = 0.5,
+  ranges = example2_ranges,
+  x_title = "Retention time (min)",
+  y_title = "Relative\nintensity",
+  sample_ID_title = "Cell type"
+) +
+  scale_color_manual(values = brewer.pal(8, "Set2")[c(1,4)],
+                     limits = example2_mapping$sample) +
+  scale_y_continuous(breaks = c(0, 0.5, 1)) +
+  xlim(c(2, 7.5)) +
+  theme(legend.position = "top",
+        axis.title.y = element_text(hjust = 0.4)) 
+
+example2_traces_3
+```
+Low x_offset and high y_offset facilitate comparisons along x axis. 
+It gives the sensation that we are looking at the graph from the top. 
+
+## side by side comparison
+```{r}
+patchwork::wrap_plots(
+  example2_traces_2, example2_traces_3, nrow = 2 
+)  
+
+ggsave("../Results/LC_MS_perspectives.svg", height = 6, width = 6, bg = "white")
+ggsave("../Results/LC_MS_perspectives.png", height = 6, width = 6, bg = "white")
+```
+
+
+
+# Facet plot
+```{r}
+plot_facet(LC_MS_data_2, x_title = "Retention time (min)", y_title = "Relative intensity") +
+  scale_color_manual(values = brewer.pal(8, "Set2")[c(1,4)]) 
+
+ggsave("../Results/LC_MS_facet.svg", height = 3.5, width = 5, bg = "white")
+ggsave("../Results/LC_MS_facet.png", height = 3.5, width = 5, bg = "white")
+```
+# Pherogram
  
+```{r}
+plot_pherogram(data = metagene_2, 
+               y_title = "Position relative to TSS", 
+               legend_title = "Normalized\ncoverage",
+               mapping = example3_mapping)
+
+ggsave("../Results/metagene_pherogram.svg", height = 5, width = 4.75, bg = "white")
+ggsave("../Results/metagene_pherogram.png", height = 5, width = 4.75, bg = "white")
+```
+
 

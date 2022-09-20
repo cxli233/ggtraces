@@ -1,5 +1,9 @@
 # ggtraces - A tidyverse and grammar of graphics powered line traces visualizer  
 
+v.1.0.0 release: 
+[![DOI](https://zenodo.org/badge/516867891.svg)](https://zenodo.org/badge/latestdoi/516867891)
+
+
 Author: Chenxin Li, postdoctoral associate at Center for Applied Genetic Technologies, University of Georgia. 
 
   Contact: [Chenxin.Li@uga.edu](Chenxin.Li@uga.edu)

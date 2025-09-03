@@ -4,9 +4,8 @@ v.1.0.0 release:
 [![DOI](https://zenodo.org/badge/516867891.svg)](https://zenodo.org/badge/latestdoi/516867891)
 
 
-Author: Chenxin Li, Ph.D., Assistant Research Scientist at Department of Crop & Soil Sciences and Center for Applied Genetic Technologies, University of Georgia. 
-
-  Contact: lichen27@msu.edu
+* Author: Chenxin Li, Ph.D., Assistant Professor at Department of Plant Biology, Michigan State University.  
+* Contact: lichen27@msu.edu
 
 The main goal of this repository is to empower R users such that we can produce publication quality chromatograms with R. 
 Examples and explanations are below. 
